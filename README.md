@@ -9,67 +9,66 @@ DELETE  FROM counties WHERE name_tag = 'Londonderry' OR name_tag = 'Antrim' OR n
 COMMIT;  
 ROLLBACK;  
   
--- Removing secondary roads FROM the OSM road dataset - has already been partially filtered using QGIS
-BEGIN;
-SELECT * FROM gisosmroads WHERE fclass = 'secondary' OR fclass = 'secondary_link';
-DELETE  FROM gisosmroads WHERE fclass = 'secondary' OR fclass = 'secondary_link';
-COMMIT;
-ROLLBACK;
-
--- Number of primary schools in each county
-ALTER TABLE counties ADD COLUMN NumPrimarySchools INTEGER DEFAULT 0;
-
-With PolygonQuery as (
-    SELECT C.name_tag,count(*) as NumPrimarySchoolsInCounty 
-	FROM counties as C, primaryschools as P
-	WHERE ST_CONTAINS(C.wkb_geometry,P.wkb_geometry)
-	GROUP BY C.name_tag)
-UPDATE counties
-SET NumPrimarySchools = PolygonQuery.NumPrimarySchoolsInCounty  
-FROM PolygonQuery 
-WHERE counties.name_tag = PolygonQuery.name_tag;
-
+-- Removing secondary roads FROM the OSM road dataset - has already been partially filtered using QGIS. 
+BEGIN;  
+SELECT * FROM gisosmroads WHERE fclass = 'secondary' OR fclass = 'secondary_link';  
+DELETE  FROM gisosmroads WHERE fclass = 'secondary' OR fclass = 'secondary_link';  
+COMMIT;  
+ROLLBACK;  
+    
+-- Number of primary schools in each county  
+ALTER TABLE counties ADD COLUMN NumPrimarySchools INTEGER DEFAULT 0;  
+With PolygonQuery as (  
+    SELECT C.name_tag,count(*) as NumPrimarySchoolsInCounty   
+	FROM counties as C, primaryschools as P  
+	WHERE ST_CONTAINS(C.wkb_geometry,P.wkb_geometry)  
+	GROUP BY C.name_tag)  
+UPDATE counties  
+SET NumPrimarySchools = PolygonQuery.NumPrimarySchoolsInCounty    
+FROM PolygonQuery   
+WHERE counties.name_tag = PolygonQuery.name_tag;  
 
 
--- Number of post primary schools in each county
-ALTER TABLE counties ADD COLUMN NumPostPrimarySchools INTEGER DEFAULT 0;
+  
+-- Number of post primary schools in each county  
+ALTER TABLE counties ADD COLUMN NumPostPrimarySchools INTEGER DEFAULT 0;  
+  
+With PolygonQuery as (  
+    SELECT C.name_tag,count(*) as NumPostPrimarySchoolsInCounty   
+	FROM counties as C, postprimaryschools as P  
+	WHERE ST_CONTAINS(C.wkb_geometry,P.wkb_geometry)  
+	GROUP BY C.name_tag)  
+UPDATE counties  
+SET NumPostPrimarySchools = PolygonQuery.NumPostPrimarySchoolsInCounty    
+FROM PolygonQuery   
+WHERE counties.name_tag = PolygonQuery.name_tag;  
 
-With PolygonQuery as (
-    SELECT C.name_tag,count(*) as NumPostPrimarySchoolsInCounty 
-	FROM counties as C, postprimaryschools as P
-	WHERE ST_CONTAINS(C.wkb_geometry,P.wkb_geometry)
-	GROUP BY C.name_tag)
-UPDATE counties
-SET NumPostPrimarySchools = PolygonQuery.NumPostPrimarySchoolsInCounty  
-FROM PolygonQuery 
-WHERE counties.name_tag = PolygonQuery.name_tag;
-
-
--- View of primary schools
-DROP VIEW IF EXISTS PrimarySchoolsView;
-CREATE OR REPLACE VIEW PrimarySchoolsView as 
-SELECT P.ogc_fid as SchoolID, P.off_name as Schoolname, P.add_1 as Town, C.name_tag as CountyName, P.wkb_geometry as schgeom
-FROM counties as C, primaryschools as P
-WHERE ST_Contains(C.wkb_geometry,P.wkb_geometry);  
-
-SELECT count(*) FROM p210004.PrimarySchoolsView
-
--- View of post primary schools
-DROP VIEW IF EXISTS PostPrimarySchoolsView;
-CREATE OR REPLACE VIEW PostPrimarySchoolsView as 
-SELECT P.ogc_fid as SchoolID, P.off_name as Schoolname, P.add_1 as Town, C.name_tag as CountyName, P.wkb_geometry as schgeom
-FROM counties as C, postprimaryschools as P
-WHERE ST_Contains(C.wkb_geometry,P.wkb_geometry); 
-
-SELECT count(*) FROM p210004.PostPrimarySchoolsView
-
---Counting schools in Dublin
---Primary
-SELECT count(*)
-FROM counties as C, primaryschools as P
-WHERE ST_Contains(C.wkb_geometry,P.wkb_geometry) AND C.name_tag = 'Dublin';  
-
---Post Primary
+  
+-- View of primary schools  
+DROP VIEW IF EXISTS PrimarySchoolsView;  
+CREATE OR REPLACE VIEW PrimarySchoolsView as   
+SELECT P.ogc_fid as SchoolID, P.off_name as Schoolname, P.add_1 as Town, C.name_tag as CountyName, P.wkb_geometry as schgeom  
+FROM counties as C, primaryschools as P  
+WHERE ST_Contains(C.wkb_geometry,P.wkb_geometry);    
+  
+SELECT count(*) FROM p210004.PrimarySchoolsView  
+  
+-- View of post primary schools  
+DROP VIEW IF EXISTS PostPrimarySchoolsView;  
+CREATE OR REPLACE VIEW PostPrimarySchoolsView as   
+SELECT P.ogc_fid as SchoolID, P.off_name as Schoolname, P.add_1 as Town, C.name_tag as CountyName, P.wkb_geometry as schgeom  
+FROM counties as C, postprimaryschools as P  
+WHERE ST_Contains(C.wkb_geometry,P.wkb_geometry);   
+  
+SELECT count(*) FROM p210004.PostPrimarySchoolsView  
+  
+--Counting schools in Dublin  
+--Primary  
+SELECT count(*)  
+FROM counties as C, primaryschools as P  
+WHERE ST_Contains(C.wkb_geometry,P.wkb_geometry) AND C.name_tag = 'Dublin';    
+  
+--Post Primary  
 SELECT count(*)
 FROM counties as C, postprimaryschools as P
 WHERE ST_Contains(C.wkb_geometry,P.wkb_geometry) AND C.name_tag = 'Dublin';
