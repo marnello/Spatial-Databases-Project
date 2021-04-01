@@ -2,7 +2,7 @@
 H.Dip.-Data-Analytics  
 SQL Code used with QGIS  
 
--- Deleting the six northern counties FROM the counties table as they are not part of the study area. 
+#-- Deleting the six northern counties FROM the counties table as they are not part of the study area. 
 BEGIN;  
 SELECT * FROM counties WHERE name_tag = 'Londonderry' OR name_tag = 'Antrim' OR name_tag = 'Fermanagh' OR name_tag = 'Tyrone' OR name_tag = 'Armagh' OR name_tag = 'Down';  
 DELETE  FROM counties WHERE name_tag = 'Londonderry' OR name_tag = 'Antrim' OR name_tag = 'Fermanagh' OR name_tag = 'Tyrone' OR name_tag = 'Armagh' OR name_tag = 'Down';  
