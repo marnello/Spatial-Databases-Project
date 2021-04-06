@@ -1,5 +1,6 @@
 # Spatial-Databases-Project  
-H.Dip.-Data-Analytics  
+
+H.Dip. Data Analytics  
 Individual project for the spatial databases module, using PostgreSQL and QGIS.
 
 Process:
